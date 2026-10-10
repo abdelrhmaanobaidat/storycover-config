@@ -4,10 +4,8 @@ kind: Kustomization
 resources:
 - ../../base
 
-replicas:
-- count: 1
-  name: storycover
-
+# Replica count is owned by the HPA (base minReplicas 1), not pinned here, so Argo
+# selfHeal does not fight the autoscaler.
 configMapGenerator:
 - behavior: merge
   literals:
@@ -15,7 +13,6 @@ configMapGenerator:
   name: storycover-env
 
 # CI rewrites newTag to the pushed git SHA via "kustomize edit set image".
-# The bootstrap tag is a placeholder for the first build only; never latest.
 images:
 - name: storycover-app
   newName: me-central1-docker.pkg.dev/storycover-dev/storycover/storycover-app

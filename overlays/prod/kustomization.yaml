@@ -4,9 +4,14 @@ kind: Kustomization
 resources:
   - ../../base
 
-replicas:
-  - name: storycover
-    count: 2
+patches:
+  - target:
+      kind: HorizontalPodAutoscaler
+      name: storycover
+    patch: |-
+      - op: replace
+        path: /spec/minReplicas
+        value: 2
 
 configMapGenerator:
   - name: storycover-env
