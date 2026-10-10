@@ -1,0 +1,23 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../base
+
+replicas:
+  - name: storycover
+    count: 2
+
+configMapGenerator:
+  - name: storycover-env
+    behavior: merge
+    literals:
+      - GCS_BUCKET=storycover-prod-covers
+
+# Prod image registry/project scoping is not settled yet: app CI only pushes to the
+# dev project today, so promotion (main -> prod) and a prod-side registry still need
+# a decision. Tag is a placeholder until then.
+images:
+  - name: storycover-app
+    newName: me-central1-docker.pkg.dev/storycover-dev/storycover/storycover-app
+    newTag: bootstrap

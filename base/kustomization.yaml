@@ -1,0 +1,17 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: storycover
+
+resources:
+  - serviceaccount.yaml
+  - deployment.yaml
+  - service.yaml
+  - hpa.yaml
+  - networkpolicy.yaml
+
+# Per-env values; overlays override GCS_BUCKET with behavior: merge.
+configMapGenerator:
+  - name: storycover-env
+    literals:
+      - GCS_BUCKET=set-in-overlay

@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: storycover
+  labels:
+    app: storycover
+spec:
+  selector:
+    matchLabels:
+      app: storycover
+  template:
+    metadata:
+      labels:
+        app: storycover
+    spec:
+      serviceAccountName: storycover-app
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      # Only the application node pool is tainted; land here, not on the management pool.
+      nodeSelector:
+        workload: application
+      tolerations:
+        - key: workload
+          operator: Equal
+          value: application
+          effect: NoSchedule
+      containers:
+        - name: storycover
+          image: storycover-app
+          ports:
+            - containerPort: 8080
+          env:
+            # Synced from Vault by VSO into the gemini-api-key Secret; KV field is api_key.
+            - name: GEMINI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: gemini-api-key
+                  key: api_key
+          envFrom:
+            # GCS_BUCKET and any other per-env values; overlays override the generator.
+            - configMapRef:
+                name: storycover-env
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}

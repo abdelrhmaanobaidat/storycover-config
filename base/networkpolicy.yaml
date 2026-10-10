@@ -1,0 +1,39 @@
+# Selecting the app pods makes this a default-deny for both directions; only the
+# rules below are permitted. Ingress is scoped to the app port and will be narrowed
+# to the gateway namespace once edge exposure lands.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: storycover
+spec:
+  podSelector:
+    matchLabels:
+      app: storycover
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 8080
+  egress:
+    # DNS resolution.
+    - ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # Vault API (secret retrieval path).
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: vault
+      ports:
+        - protocol: TCP
+          port: 8200
+    # Outbound HTTPS to Gemini and Google Cloud Storage.
+    - ports:
+        - protocol: TCP
+          port: 443
