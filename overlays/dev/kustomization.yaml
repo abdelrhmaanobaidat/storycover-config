@@ -9,14 +9,14 @@ resources:
 
 # Bind the app SA to the dev GCP service account (Workload Identity).
 patches:
-  - target:
-      kind: ServiceAccount
-      name: storycover-app
-    patch: |-
-      - op: add
-        path: /metadata/annotations
-        value:
-          iam.gke.io/gcp-service-account: storycover-app@storycover-dev.iam.gserviceaccount.com
+- patch: |-
+    - op: add
+      path: /metadata/annotations
+      value:
+        iam.gke.io/gcp-service-account: storycover-app@storycover-dev.iam.gserviceaccount.com
+  target:
+    kind: ServiceAccount
+    name: storycover-app
 
 configMapGenerator:
 - behavior: merge
@@ -28,4 +28,4 @@ configMapGenerator:
 images:
 - name: storycover-app
   newName: me-central1-docker.pkg.dev/storycover-dev/storycover/storycover-app
-  newTag: 7b929b2f6b9e23903166bd329286aa2dea51eb28
+  newTag: b0c17a21aadf9eddcd119eb7aaf1779e85b91241
